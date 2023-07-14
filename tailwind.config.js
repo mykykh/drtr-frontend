@@ -17,6 +17,7 @@ module.exports = {
       'primary': '#64748b',
       'primary-hover': '#475569',
       'secondary': '#1e293b',
+      'secondary-hover': '#0f172a',
     }
   },
   plugins: [],
