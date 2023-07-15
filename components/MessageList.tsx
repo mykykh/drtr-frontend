@@ -6,6 +6,7 @@ import MessageCard from "./MessageCard"
 
 import addresses from "../contracts/addresses.json" 
 import abi from "../contracts/abi.json"
+import PrimaryButton from "./PrimaryButton"
 
 export default function MessageList({startingMessageId}: {startingMessageId: number | undefined}) {
   const { chainId: chainIdHex } = useMoralis()
@@ -82,7 +83,9 @@ export default function MessageList({startingMessageId}: {startingMessageId: num
             author={message.author} 
             text={message.text} />
         )}
-        <button className="bg-primary p-2 rounded-md hover:bg-primary-hover" onClick={() => updateMaxNumberOfMessages(maxNumberOfMessages + 5)} disabled={queriedMessageId==-1}>Load more</button>
+        <PrimaryButton text="Load more"
+        onClickHandler={() => updateMaxNumberOfMessages(maxNumberOfMessages + 5)}
+        disabled={queriedMessageId==-1} />
       </div>
   )
 }
