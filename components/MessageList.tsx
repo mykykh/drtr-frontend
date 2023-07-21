@@ -7,6 +7,7 @@ import MessageCard from "./MessageCard"
 import addresses from "../contracts/addresses.json" 
 import abi from "../contracts/abi.json"
 import PrimaryButton from "./PrimaryButton"
+import Moralis from "moralis-v1"
 
 export default function MessageList({startingMessageId}: {startingMessageId: number | undefined}) {
   const { chainId: chainIdHex } = useMoralis()
@@ -20,6 +21,8 @@ export default function MessageList({startingMessageId}: {startingMessageId: num
 
   const [ fetchedMessagesId, updateFethcedMessagesId ] = useState([])
   const [ maxNumberOfMessages, updateMaxNumberOfMessages ] = useState(5)
+
+  const [ messageDonation, updateMessageDonation ] = useState({messageId: -1, donationAmount: 0})
 
   const { runContractFunction: getCurrentId } = useWeb3Contract({
     abi: abi,
@@ -37,6 +40,16 @@ export default function MessageList({startingMessageId}: {startingMessageId: num
     }
   })
 
+  const { runContractFunction: donateToMessage } = useWeb3Contract({
+    abi: abi,
+    contractAddress: messageStorageAddress,
+    functionName: "donateToMessage",
+    msgValue: Moralis.Units.ETH(messageDonation.donationAmount),
+    params: {
+      messageId: messageDonation.messageId 
+    }
+  })
+
   async function fetchMaxMessageId() {
     const currentId = parseInt((await getCurrentId())._hex)
     setMaxMessageId(currentId)
@@ -47,7 +60,9 @@ export default function MessageList({startingMessageId}: {startingMessageId: num
     updateMessages(messages.concat([{
       messageId: queriedMessageId,
       author: fetchedMessage[0],
-      text: fetchedMessage[1]
+      text: fetchedMessage[1],
+      currentBalance: (parseInt(fetchedMessage[2]._hex))/(10**18),
+      totalDonations: (parseInt(fetchedMessage[3]._hex))/(10**18)
     }]))
     updateFethcedMessagesId(fetchedMessagesId.concat([queriedMessageId]))
     updateQueriedMessageId(queriedMessageId - 1)
@@ -75,13 +90,26 @@ export default function MessageList({startingMessageId}: {startingMessageId: num
     }
   }, [maxMessageId, maxNumberOfMessages])
 
+  useEffect(() => {
+    if (messageDonation.messageId < 0)
+      return
+    if (messageDonation.donationAmount <= 0)
+      return
+    donateToMessage()
+  }, [messageDonation])
+
   return (
       <div className="grid grid-row-1 gap-2 justify-items-center">
         {messages.map(message => 
           <MessageCard key={message.messageId}
             id={message.messageId}
             author={message.author} 
-            text={message.text} />
+            text={message.text}
+            currentBalance={message.currentBalance}
+            totalDonations={message.totalDonations} 
+            onDonationClickHandler={(messageId, donationAmount) => {
+              updateMessageDonation({messageId: messageId, donationAmount: donationAmount})
+            }} />
         )}
         <PrimaryButton text="Load more"
         onClickHandler={() => updateMaxNumberOfMessages(maxNumberOfMessages + 5)}
