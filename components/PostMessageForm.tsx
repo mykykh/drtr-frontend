@@ -3,6 +3,8 @@ import { useMoralis, useWeb3Contract } from "react-moralis"
 import addresses from "../contracts/addresses.json" 
 import abi from "../contracts/abi.json"
 import { useState } from "react"
+import TextInput from "./TextInput"
+import SubmitInput from "./SubmitInput"
 
 export default function PostMessageForm() {
     const { chainId: chainIdHex } = useMoralis()
@@ -27,13 +29,14 @@ export default function PostMessageForm() {
 
     return (
         <form className="flex flex-col items-center w-full" onSubmit={postMessage}>
-            <input className="w-full max-w-3xl bg-secondary p-2 mb-2 
-                rounded-md hover:bg-secondary-hover transition" 
-                type="text" placeholder="Enter message" 
-                value={messageText} onChange={input => updateMessageText(input.target.value)} />
+            <div className="w-full max-w-3xl">
+                <div className="mb-2">
+                    <TextInput placeholder="Enter message" value={messageText} 
+                        onChangeHandler={(input: any) => updateMessageText(input.target.value)} />
+                </div>
 
-            <input className="w-full max-w-3xl p-2 bg-primary rounded-md 
-                hover:bg-primary-hover transition" type="submit" value="Post" />
+                <SubmitInput value="Post" />
+            </div>
         </form>
     )
 }
