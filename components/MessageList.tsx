@@ -24,6 +24,8 @@ export default function MessageList({startingMessageId}: {startingMessageId: num
 
   const [ messageDonation, updateMessageDonation ] = useState({messageId: -1, donationAmount: 0})
 
+  const [ messageWithdrawId, updateMessageWithdraw ] = useState(-1)
+
   const { runContractFunction: getCurrentId } = useWeb3Contract({
     abi: abi,
     contractAddress: messageStorageAddress,
@@ -47,6 +49,15 @@ export default function MessageList({startingMessageId}: {startingMessageId: num
     msgValue: Moralis.Units.ETH(messageDonation.donationAmount),
     params: {
       messageId: messageDonation.messageId 
+    }
+  })
+
+  const { runContractFunction: withdrawFromMessage } = useWeb3Contract({
+    abi: abi,
+    contractAddress: messageStorageAddress,
+    functionName: "withdrawFromMessage",
+    params: {
+      messageId: messageWithdrawId 
     }
   })
 
@@ -95,8 +106,16 @@ export default function MessageList({startingMessageId}: {startingMessageId: num
       return
     if (messageDonation.donationAmount <= 0)
       return
+
     donateToMessage()
   }, [messageDonation])
+
+  useEffect(() => {
+    if (messageWithdrawId < 0)
+      return
+
+    withdrawFromMessage()
+  }, [messageWithdrawId])
 
   return (
       <div className="grid grid-row-1 gap-2 justify-items-center">
@@ -109,7 +128,8 @@ export default function MessageList({startingMessageId}: {startingMessageId: num
             totalDonations={message.totalDonations} 
             onDonationClickHandler={(messageId, donationAmount) => {
               updateMessageDonation({messageId: messageId, donationAmount: donationAmount})
-            }} />
+            }}
+            onWithdrawClickHandler={(messageId) => updateMessageWithdraw(messageId)} />
         )}
         <PrimaryButton text="Load more"
         onClickHandler={() => updateMaxNumberOfMessages(maxNumberOfMessages + 5)}

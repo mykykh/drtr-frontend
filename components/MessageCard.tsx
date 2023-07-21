@@ -4,10 +4,11 @@ import { useState } from "react";
 import PrimaryButton from "./PrimaryButton";
 import NumberInput from "./NumberInput";
 
-export default function MessageCard({id, author, text, currentBalance,
-    totalDonations, onDonationClickHandler}:
+export default function MessageCard({id, author, text, currentBalance, totalDonations,
+    onDonationClickHandler, onWithdrawClickHandler}:
     {id: number, author: string, text: string, currentBalance: number, totalDonations: number,
-        onDonationClickHandler: (messageId: number, donationAmount: number) => void}) {
+        onDonationClickHandler: (messageId: number, donationAmount: number) => void,
+        onWithdrawClickHandler: (messageId: number) => void}) {
     const [donationAmount, updateDonationAmount] = useState(0)
     return (
         <div className="flex flex-col p-2 bg-secondary rounded-md w-full max-w-3xl">
@@ -20,8 +21,13 @@ export default function MessageCard({id, author, text, currentBalance,
                         value={donationAmount}
                         onChangeHandler={(input) => updateDonationAmount(input.target.value)} />
                 </div>
-                <div className="flex basis-1/3 pl-2 items-center">
-                    <PrimaryButton text="Donate" onClickHandler={() => onDonationClickHandler(id, donationAmount)}/>
+                <div className="flex basis-1/6 justify-center items-center">
+                    <PrimaryButton text="Donate"
+                        onClickHandler={() => onDonationClickHandler(id, donationAmount)} />
+                </div>
+                <div className="flex basis-1/6 justify-center items-center">
+                    <PrimaryButton text="Withdraw"
+                        onClickHandler={() => onWithdrawClickHandler(id)} />
                 </div>
             </div>
         </div>
