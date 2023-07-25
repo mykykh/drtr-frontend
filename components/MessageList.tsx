@@ -14,13 +14,16 @@ export default function MessageList({startingMessageId}: {startingMessageId: num
   const chainId = parseInt(chainIdHex!)
   const messageStorageAddress: string | undefined = chainId ? addresses[chainId][0] : undefined
 
+  const [ scrollOnTop, setScrollOnTop ] = useState(true)
+
   const [ maxMessageId, setMaxMessageId ] = useState(startingMessageId)
+  const [ oldMaxMessageId, setOldMaxMessageId] = useState(undefined)
   const [ queriedMessageId, updateQueriedMessageId ] = useState(undefined)
 
   const [ messages, updateMessages ] = useState([]) 
 
   const [ fetchedMessagesId, updateFethcedMessagesId ] = useState([])
-  const [ maxNumberOfMessages, updateMaxNumberOfMessages ] = useState(5)
+  const [ maxNumberOfMessages, updateMaxNumberOfMessages ] = useState(undefined)
 
   const [ messageDonation, updateMessageDonation ] = useState({messageId: -1, donationAmount: 0})
 
@@ -64,6 +67,10 @@ export default function MessageList({startingMessageId}: {startingMessageId: num
   async function fetchMaxMessageId() {
     const currentId = parseInt((await getCurrentId())._hex)
     setMaxMessageId(currentId)
+    setInterval(async () => {
+      const currentId = parseInt((await getCurrentId())._hex)
+      setMaxMessageId(currentId)
+    }, 1000)
   }
 
   async function fetchMessage() {
@@ -74,7 +81,7 @@ export default function MessageList({startingMessageId}: {startingMessageId: num
       text: fetchedMessage[1],
       currentBalance: (parseInt(fetchedMessage[2]._hex))/(10**18),
       totalDonations: (parseInt(fetchedMessage[3]._hex))/(10**18)
-    }]))
+    }]).sort((a, b) => b.messageId - a.messageId))
     updateFethcedMessagesId(fetchedMessagesId.concat([queriedMessageId]))
     updateQueriedMessageId(queriedMessageId - 1)
   }
@@ -94,12 +101,34 @@ export default function MessageList({startingMessageId}: {startingMessageId: num
   }, [queriedMessageId])
 
   useEffect(() => {
-    if (maxMessageId === undefined) {
-      fetchMaxMessageId()
-    }else {
+    if (maxNumberOfMessages) {
       updateQueriedMessageId(Math.max(0, maxMessageId - 1))
     }
-  }, [maxMessageId, maxNumberOfMessages])
+  }, [maxNumberOfMessages])
+
+  useEffect(() => {
+    if (maxMessageId === undefined) {
+      fetchMaxMessageId()
+    } else {
+      if (scrollOnTop) {
+        if (oldMaxMessageId) {
+          updateMaxNumberOfMessages(maxNumberOfMessages + (maxMessageId - oldMaxMessageId))
+          setOldMaxMessageId(maxMessageId)
+        } else {
+          updateMaxNumberOfMessages(5)
+          setOldMaxMessageId(maxMessageId)
+        }
+      }
+    }
+  }, [scrollOnTop, maxMessageId])
+
+  useEffect(() => {
+    if (scrollY == 0) {
+      setScrollOnTop(true)
+    } else {
+      setScrollOnTop(false)
+    }
+  })
 
   useEffect(() => {
     if (messageDonation.messageId < 0)
